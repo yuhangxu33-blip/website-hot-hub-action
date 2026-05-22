@@ -1,0 +1,41 @@
+name: Feishu Notification
+
+on:
+  push:
+    branches:
+      - main # 你可以根据需要更改分支名称
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        # 必须获取完整的提交历史才能进行比较
+        fetch-depth: 0
+
+    - name: Send Plain Text Notification to Feishu
+      env:
+        FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      run: |
+        # 1. 提取出所有新增行的纯文本内容
+        #    这个命令可以正确处理包含各种符号和链接的文本行
+        CLEAN_CONTENT=$(git diff HEAD~1 HEAD | grep '^\+' | grep -v '+++' | sed 's/^+//')
+
+        # 2. 如果没有任何新增内容，则直接退出
+        if [ -z "$CLEAN_CONTENT" ]; then
+          echo "No new content added. Skipping notification."
+          exit 0
+        fi
+
+        # 3. 使用 jq 安全地构建 JSON payload
+        #    这是最关键的一步。jq 会自动处理 CLEAN_CONTENT 中所有的特殊字符
+        #    （包括引号、反斜杠、链接、各种标点等），确保生成一个完全有效的 JSON。
+        JSON_PAYLOAD=$(jq -n --arg text "$CLEAN_CONTENT" '{msg_type: "text", content: {text: $text}}')
+
+        # 4. 发送最终构建好的、格式正确的 JSON payload
+        curl -X POST -H "Content-Type: application/json" \
+          -d "$JSON_PAYLOAD" \
+          "$FEISHU_WEBHOOK_URL"
