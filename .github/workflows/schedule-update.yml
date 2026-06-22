@@ -80,6 +80,7 @@ jobs:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           # FEISHU_WEBHOOK_URL_TEST: ${{ secrets.FEISHU_WEBHOOK_URL_TEST }}
           FEISHU_WEBHOOK_URL_CHANYAN: ${{ secrets.FEISHU_WEBHOOK_URL_CHANYAN }}
+          FEISHU_WEBHOOK_2: ${{ secrets.FEISHU_WEBHOOK_2 }}
           WEREAD_COOKIE: ${{ secrets.WEREAD_COOKIE }}
         run: |
           # 1. 定义一个函数，用于将 JSON 数组安全地转换为带序号的 Markdown 列表
@@ -173,7 +174,7 @@ jobs:
 
           # 6. 循环遍历所有 webhook URL 并发送通知
           # for url in "$FEISHU_WEBHOOK_URL" "$FEISHU_WEBHOOK_URL_TEST" "$FEISHU_WEBHOOK_URL_CHANYAN"; do
-          for url in "$FEISHU_WEBHOOK_URL" "$FEISHU_WEBHOOK_URL_CHANYAN"; do
+          for url in "$FEISHU_WEBHOOK_URL" "$FEISHU_WEBHOOK_URL_CHANYAN" "$FEISHU_WEBHOOK_2"; do
             if [ -n "$url" ]; then
               echo "Sending notification to a webhook..."
               curl -X POST -H "Content-Type: application/json" -d "$JSON_PAYLOAD" "$url"
